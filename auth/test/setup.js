@@ -9,20 +9,14 @@ export const connectToMockDB = async () => {
     mongoServer = await MongoMemoryServer.create({
       instance: {
         dbName: "test-auth-db",
-      },
-      binary: {
-        version: "7.0.14",
       }
     });
-    
+
     const mongoUri = mongoServer.getUri();
     console.log("MongoDB Memory Server URI:", mongoUri);
-    
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    
+
+    await mongoose.connect(mongoUri);
+
     console.log("Connected to in-memory MongoDB");
   } catch (error) {
     console.error("Error connecting to in-memory MongoDB:", error);
@@ -35,7 +29,7 @@ export const disconnectFromMockDB = async () => {
     if (mongoose.connection.readyState !== 0) {
       await mongoose.disconnect();
     }
-    
+
     if (mongoServer) {
       await mongoServer.stop();
     }

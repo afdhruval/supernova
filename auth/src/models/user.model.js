@@ -21,6 +21,7 @@ const userScahma = mongoose.Schema({
   },
   password: {
     type: String,
+    select: false
   },
   fullName: {
     firstname: { type: String, required: true },

@@ -16,18 +16,20 @@ describe("Auth Register Endpoint", () => {
     await clearDatabase();
   });
 
-  describe("POST /auth/register", () => {
+  describe("POST /api/auth/register", () => {
     it("should successfully register a new user", async () => {
       const newUser = {
         username: "testuser",
         email: "test@example.com",
-        password: "Password123",
-        firstname: "John",
-        lastname: "Doe",
+        password: "Pass123",
+        fullName: {
+          firstname: "John",
+          lastname: "Doe",
+        },
         role: "user",
       };
 
-      const response = await request(app).post("/auth/register").send(newUser);
+      const response = await request(app).post("/api/auth/register").send(newUser);
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -42,14 +44,16 @@ describe("Auth Register Endpoint", () => {
       const newUser = {
         username: "testuser2",
         email: "test2@example.com",
-        password: "Password123",
-        firstname: "Jane",
-        lastname: "Doe",
+        password: "Pass123",
+        fullName: {
+          firstname: "Jane",
+          lastname: "Doe",
+        },
       };
 
-      await request(app).post("/auth/register").send(newUser);
+      await request(app).post("/api/auth/register").send(newUser);
 
-      const savedUser = await userModel.findOne({ email: newUser.email });
+      const savedUser = await userModel.findOne({ email: newUser.email }).select("+password");
       expect(savedUser).toBeDefined();
       expect(savedUser.password).not.toBe(newUser.password); // Password should be hashed
       expect(savedUser.password.length).toBeGreaterThan(20); // Bcrypt hashes are long
@@ -60,12 +64,14 @@ describe("Auth Register Endpoint", () => {
         username: "testuser",
         email: "test@example.com",
         // missing password
-        firstname: "John",
-        lastname: "Doe",
+        fullName: {
+          firstname: "John",
+          lastname: "Doe",
+        },
       };
 
       const response = await request(app)
-        .post("/auth/register")
+        .post("/api/auth/register")
         .send(incompleteUser);
 
       expect(response.status).toBe(400);
@@ -76,13 +82,15 @@ describe("Auth Register Endpoint", () => {
     it("should return 400 when email is missing", async () => {
       const incompleteUser = {
         username: "testuser",
-        password: "Password123",
-        firstname: "John",
-        lastname: "Doe",
+        password: "Pass123",
+        fullName: {
+          firstname: "John",
+          lastname: "Doe",
+        },
       };
 
       const response = await request(app)
-        .post("/auth/register")
+        .post("/api/auth/register")
         .send(incompleteUser);
 
       expect(response.status).toBe(400);
@@ -93,13 +101,15 @@ describe("Auth Register Endpoint", () => {
     it("should return 400 when username is missing", async () => {
       const incompleteUser = {
         email: "test@example.com",
-        password: "Password123",
-        firstname: "John",
-        lastname: "Doe",
+        password: "Pass123",
+        fullName: {
+          firstname: "John",
+          lastname: "Doe",
+        },
       };
 
       const response = await request(app)
-        .post("/auth/register")
+        .post("/api/auth/register")
         .send(incompleteUser);
 
       expect(response.status).toBe(400);
@@ -111,25 +121,29 @@ describe("Auth Register Endpoint", () => {
       const firstUser = {
         username: "user1",
         email: "duplicate@example.com",
-        password: "Password123",
-        firstname: "John",
-        lastname: "Doe",
+        password: "Pass123",
+        fullName: {
+          firstname: "John",
+          lastname: "Doe",
+        },
       };
 
       // Register first user
-      await request(app).post("/auth/register").send(firstUser);
+      await request(app).post("/api/auth/register").send(firstUser);
 
       // Try to register with same email
       const secondUser = {
         username: "user2",
         email: "duplicate@example.com",
-        password: "Password456",
-        firstname: "Jane",
-        lastname: "Smith",
+        password: "Pass456",
+        fullName: {
+          firstname: "Jane",
+          lastname: "Smith",
+        },
       };
 
       const response = await request(app)
-        .post("/auth/register")
+        .post("/api/auth/register")
         .send(secondUser);
 
       expect(response.status).toBe(409);
@@ -143,25 +157,29 @@ describe("Auth Register Endpoint", () => {
       const firstUser = {
         username: "duplicate",
         email: "user1@example.com",
-        password: "Password123",
-        firstname: "John",
-        lastname: "Doe",
+        password: "Pass123",
+        fullName: {
+          firstname: "John",
+          lastname: "Doe",
+        },
       };
 
       // Register first user
-      await request(app).post("/auth/register").send(firstUser);
+      await request(app).post("/api/auth/register").send(firstUser);
 
       // Try to register with same username
       const secondUser = {
         username: "duplicate",
         email: "user2@example.com",
-        password: "Password456",
-        firstname: "Jane",
-        lastname: "Smith",
+        password: "Pass456",
+        fullName: {
+          firstname: "Jane",
+          lastname: "Smith",
+        },
       };
 
       const response = await request(app)
-        .post("/auth/register")
+        .post("/api/auth/register")
         .send(secondUser);
 
       expect(response.status).toBe(409);
@@ -175,13 +193,15 @@ describe("Auth Register Endpoint", () => {
       const newUser = {
         username: "testuser3",
         email: "test3@example.com",
-        password: "Password123",
-        firstname: "Bob",
-        lastname: "Johnson",
+        password: "Pass123",
+        fullName: {
+          firstname: "Bob",
+          lastname: "Johnson",
+        },
         // role not provided
       };
 
-      const response = await request(app).post("/auth/register").send(newUser);
+      const response = await request(app).post("/api/auth/register").send(newUser);
 
       expect(response.status).toBe(201);
       expect(response.body.user.role).toBe("user");
@@ -191,13 +211,15 @@ describe("Auth Register Endpoint", () => {
       const newUser = {
         username: "seller1",
         email: "seller@example.com",
-        password: "Password123",
-        firstname: "Alice",
-        lastname: "Smith",
+        password: "Pass123",
+        fullName: {
+          firstname: "Alice",
+          lastname: "Smith",
+        },
         role: "seller",
       };
 
-      const response = await request(app).post("/auth/register").send(newUser);
+      const response = await request(app).post("/api/auth/register").send(newUser);
 
       expect(response.status).toBe(201);
       expect(response.body.user.role).toBe("seller");
@@ -207,16 +229,18 @@ describe("Auth Register Endpoint", () => {
       const newUser = {
         username: "testuser4",
         email: "test4@example.com",
-        password: "Password123",
-        firstname: "Chris",
-        lastname: "Davis",
+        password: "Pass123",
+        fullName: {
+          firstname: "Chris",
+          lastname: "Davis",
+        },
       };
 
-      await request(app).post("/auth/register").send(newUser);
+      await request(app).post("/api/auth/register").send(newUser);
 
       const savedUser = await userModel.findOne({ email: newUser.email });
-      expect(savedUser.fullName.firstname).toBe(newUser.firstname);
-      expect(savedUser.fullName.lastname).toBe(newUser.lastname);
+      expect(savedUser.fullName.firstname).toBe(newUser.fullName.firstname);
+      expect(savedUser.fullName.lastname).toBe(newUser.fullName.lastname);
     });
 
     it("should return 500 on server error", async () => {
@@ -228,12 +252,14 @@ describe("Auth Register Endpoint", () => {
       const newUser = {
         username: "testuser5",
         email: "test5@example.com",
-        password: "Password123",
-        firstname: "Dave",
-        lastname: "Wilson",
+        password: "Pass123",
+        fullName: {
+          firstname: "Dave",
+          lastname: "Wilson",
+        },
       };
 
-      const response = await request(app).post("/auth/register").send(newUser);
+      const response = await request(app).post("/api/auth/register").send(newUser);
 
       expect(response.status).toBe(500);
       expect(response.body.success).toBe(false);
@@ -244,9 +270,11 @@ describe("Auth Register Endpoint", () => {
       const newUser = {
         username: "testuser6",
         email: "test6@example.com",
-        password: "Password123",
-        firstname: "Eve",
-        lastname: "Brown",
+        password: "Pass123",
+        fullName: {
+          firstname: "Eve",
+          lastname: "Brown",
+        },
         addresses: [
           {
             street: "123 Main St",
@@ -258,7 +286,7 @@ describe("Auth Register Endpoint", () => {
         ],
       };
 
-      const response = await request(app).post("/auth/register").send(newUser);
+      const response = await request(app).post("/api/auth/register").send(newUser);
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
