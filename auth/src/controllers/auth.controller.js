@@ -140,4 +140,23 @@ export const login = async (req, res) => {
   }
 };
 
-export default { register, login };
+export const getMe = async (req, res) => {
+  try {
+    const userResponse = req.user.toObject();
+    delete userResponse.password;
+
+    return res.status(200).json({
+      success: true,
+      user: userResponse,
+    });
+  } catch (error) {
+    console.error("GetMe error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+export default { register, login, getMe };

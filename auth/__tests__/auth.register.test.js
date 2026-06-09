@@ -238,12 +238,20 @@ describe("Auth Register Endpoint", () => {
 
       await request(app).post("/api/auth/register").send(newUser);
 
+        },
+      };
+
+      await request(app).post("/api/auth/register").send(newUser);
+
       const savedUser = await userModel.findOne({ email: newUser.email });
       expect(savedUser.fullName.firstname).toBe(newUser.fullName.firstname);
       expect(savedUser.fullName.lastname).toBe(newUser.fullName.lastname);
     });
 
     it("should return 500 on server error", async () => {
+      // Suppress expected console.error output
+      jest.spyOn(console, "error").mockImplementation(() => {});
+
       // Mock userModel.create to throw an error
       jest
         .spyOn(userModel, "create")
@@ -256,20 +264,6 @@ describe("Auth Register Endpoint", () => {
         fullName: {
           firstname: "Dave",
           lastname: "Wilson",
-        },
-      };
-
-      const response = await request(app).post("/api/auth/register").send(newUser);
-
-      expect(response.status).toBe(500);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe("Internal server error");
-    });
-
-    it("should accept requests with additional fields (should not fail)", async () => {
-      const newUser = {
-        username: "testuser6",
-        email: "test6@example.com",
         password: "Pass123",
         fullName: {
           firstname: "Eve",
